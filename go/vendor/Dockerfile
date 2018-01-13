@@ -1,6 +1,6 @@
 FROM anothermemory/go-base
 
-ADD go-vendor/glide.* /am/
+ADD git-vendor/glide.* /am/
 RUN cd /am && \
     glide install --force --v && \
     mv /am/vendor/* /go/src && \
