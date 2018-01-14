@@ -1,4 +1,4 @@
-FROM golang:1.9-alpine
+FROM am-registry:5000/golang:1.9-alpine
 
 # Install common packages
 RUN apk update && \
