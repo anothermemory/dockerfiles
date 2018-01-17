@@ -62,10 +62,12 @@ resources:
 
 jobs:
 - name: build-go-base-develop
+  serial: true
   plan:
   - { get: git-develop, trigger: true }
   - { put: docker-image-go-base-develop, params: { build: git-develop/go/base } }
 - name: build-go-base-master
+  serial: true
   plan:
   - { get: git-master, trigger: true }
   - { put: docker-image-go-base-master, params: { build: git-master/go/base } }
