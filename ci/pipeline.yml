@@ -15,12 +15,6 @@ meta:
     registry: am-registry:5000
     image_prefix: (( concat meta.docker.registry "/anothermemory/" ))
 
-  vendor:
-    image: am-registry:5000/anothermemory/go-vendor
-    tag:
-      develop:  "develop"
-      master:   "production"
-
   github:
     uri:          (( concat "git@github.com:" meta.github.owner "/" meta.github.repo ))
     owner:        "anothermemory"
