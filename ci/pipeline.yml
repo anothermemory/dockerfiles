@@ -22,82 +22,85 @@ meta:
     private_key:  ((git_private_key))
     access_token: ((git_access_token))
 
-  dockerfiles:
-    - go/base/Dockerfile
-    - git/gitdevelop/Dockerfile
+  resource:
+    git:
+      base:
+        type: git
+        check_every: 15s
+        source:
+          uri: (( grab meta.github.uri ))
+          private_key: (( grab meta.github.private_key ))
+      go-base:
+        .: (( inject meta.resource.git.base ))
+        source: { branch: master, paths: ['go/base/Dockerfile']}
+      git-version:
+        .: (( inject meta.resource.git.base ))
+        source: { branch: master, paths: ['git/gitversion/Dockerfile']}
+    dockerimage:
+      base:
+        type: docker-image
+        check_every: 15s
+        source:
+          tag: master
+          insecure_registries: [ (( grab meta.docker.registry )) ]
+      go-base:
+        .: (( inject meta.resource.dockerimage.base ))
+        source: { repository: (( concat meta.docker.image_prefix "go-base" )) }
+      git-version:
+        .: (( inject meta.resource.dockerimage.base ))
+        source: { repository: (( concat meta.docker.image_prefix "git-version" )) }
 
 resources:
-- name: git-develop
-  type: git
-  check_every: 15s
-  source:
-    uri: (( grab meta.github.uri ))
-    branch: develop
-    private_key: (( grab meta.github.private_key ))
-    paths:
-      (( grab meta.dockerfiles ))
+- name: git-go-base-develop
+  .: (( inject meta.resource.git.go-base ))
+  source: { branch: develop}
 
-- name: git-master
-  type: git
-  check_every: 15s
-  source:
-    uri: (( grab meta.github.uri ))
-    branch: master
-    private_key: (( grab meta.github.private_key ))
-    paths:
-      (( grab meta.dockerfiles ))
+- name: git-go-base-master
+  .: (( inject meta.resource.git.go-base ))
+
+- name: git-git-version-develop
+  .: (( inject meta.resource.git.git-version ))
+  source: { branch: develop}
+
+- name: git-git-version-master
+  .: (( inject meta.resource.git.git-version ))
 
 - name: docker-image-go-base-develop
-  type: docker-image
-  check_every: 15s
-  source:
-    repository: (( concat meta.docker.image_prefix "go-base" ))
-    tag: develop
-    insecure_registries: [ (( grab meta.docker.registry )) ]
+  .: (( inject meta.resource.dockerimage.go-base ))
+  source: { tag: develop}
 
 - name: docker-image-go-base-master
-  type: docker-image
-  check_every: 15s
-  source:
-    repository: (( concat meta.docker.image_prefix "go-base" ))
-    tag: master
-    insecure_registries: [ (( grab meta.docker.registry )) ]
+  .: (( inject meta.resource.dockerimage.go-base ))
 
 - name: docker-image-git-gitversion-develop
-  type: docker-image
-  check_every: 15s
-  source:
-    repository: (( concat meta.docker.image_prefix "git-version" ))
-    tag: develop
-    insecure_registries: [ (( grab meta.docker.registry )) ]
+  .: (( inject meta.resource.dockerimage.git-version ))
+  source: { tag: develop}
 
 - name: docker-image-git-gitversion-master
-  type: docker-image
-  check_every: 15s
-  source:
-    repository: (( concat meta.docker.image_prefix "git-version" ))
-    tag: master
-    insecure_registries: [ (( grab meta.docker.registry )) ]
+  .: (( inject meta.resource.dockerimage.git-version ))
 
 
 jobs:
 - name: build-go-base-develop
   serial: true
   plan:
-  - { get: git-develop, trigger: true }
-  - { put: docker-image-go-base-develop, params: { build: git-develop/go/base } }
+  - { get: git-go-base-develop, trigger: true }
+  - { put: docker-image-go-base-develop, params: { build: git-go-base-develop/go/base } }
+
 - name: build-go-base-master
   serial: true
   plan:
-  - { get: git-master, trigger: true }
-  - { put: docker-image-go-base-master, params: { build: git-master/go/base } }
+  - { get: git-go-base-master, trigger: true }
+  - { put: docker-image-go-base-master, params: { build: git-go-base-master/go/base } }
+
 - name: build-git-gitversion-develop
   serial: true
   plan:
-  - { get: git-develop, trigger: true }
-  - { put: docker-image-git-gitversion-develop, params: { build: git-develop/git/gitversion } }
+  - { get: git-git-version-develop, trigger: true }
+  - { put: docker-image-git-gitversion-develop, params: { build: git-git-version-develop/git/gitversion } }
+
 - name: build-git-gitversion-master
   serial: true
   plan:
-  - { get: git-master, trigger: true }
-  - { put: docker-image-git-gitversion-master, params: { build: git-master/git/gitversion } }
+  - { get: git-git-version-master, trigger: true }
+  - { put: docker-image-git-gitversion-master, params: { build: git-git-version-master/git/gitversion } }
