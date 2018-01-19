@@ -17,4 +17,4 @@ RUN unzip -d /usr/lib/GitVersion/ /tmp/GitVersion.zip && \
     rm /tmp/GitVersion.zip && \
     sed -i 's|lib/linux/x86_64|/usr/lib/GitVersion/lib/linux/x86_64|g' /usr/lib/GitVersion/LibGit2Sharp.dll.config
 
-ENTRYPOINT ["mono", "/usr/lib/GitVersion/GitVersion.exe", "/repo"]
+#ENTRYPOINT ["mono", "/usr/lib/GitVersion/GitVersion.exe", "/repo"]
